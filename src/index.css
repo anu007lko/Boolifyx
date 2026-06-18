@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-brand-paper: #FDFCFB;
+  --color-brand-[#FAF9F6]: #FAF9F6;
+  --color-brand-[#E5E5E1]: #E5E5E1;
+  --color-brand-dark: #1A1A1A;
+  --color-brand-muted: #A0A09A;
+  --color-brand-[#4A4A45]: #4A4A45;
+}
+
+/* Custom styles and overrides */
+body {
+  font-family: var(--font-sans);
+  background-color: #FDFCFB; /* Warm neutral off-white paper canvas */
+  color: #1A1A1A; /* Crisp editorial black */
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF9F6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E5E5E1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A0A09A;
+}
+
+/* Custom highlighting effects */
+.editorial-highlight {
+  background-color: #FEF9C3; /* Warm paper highlight yellow */
+  padding: 0 4px;
+}
+
+/* Custom fade animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

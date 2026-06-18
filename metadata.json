@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Boolifyx",
+  "description": "An interactive, intelligent candidate sourcing tool that analyzes job descriptions, extracts core skills, builds optimized Boolean strings, and helps recruiters find top talent.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

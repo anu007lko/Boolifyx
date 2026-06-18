@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "AllowlistEntry": {
+      "title": "Allowlist Entry",
+      "description": "An email address that is allowed to access the application",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        }
+      },
+      "required": ["email"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "A user with admin privileges",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/allowedUsers/{userId}": {
+      "schema": {
+        "$ref": "#/entities/AllowlistEntry"
+      },
+      "description": "Emails that are allowed to access the application. The document ID can just be the email or a push ID."
+    },
+    "/admins/{uid}": {
+      "schema": {
+        "$ref": "#/entities/Admin"
+      },
+      "description": "Users that are administrators and can add allowed users. Document ID is their UID."
+    }
+  }
+}

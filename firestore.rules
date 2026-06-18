@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-.@]+$'); }
+    function incoming() { return request.resource.data; }
+    function isSignedIn() { 
+      return request.auth != null && (
+        request.auth.token.email_verified == true || 
+        request.auth.token.email != null
+      ); 
+    }
+    
+    function isAdmin() { 
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'anu007lko@gmail.com' ||
+        request.auth.token.email == 'admin@example.com'
+      ); 
+    }
+    
+    function isValidAllowlistEntry(data) {
+      return data.keys().hasAll(['email']) && data.keys().size() == 1 &&
+             data.email is string && data.email.size() <= 128;
+    }
+    
+    match /allowedUsers/{emailId} {
+      allow get: if isSignedIn() && (isAdmin() || request.auth.token.email == emailId);
+      allow list: if isAdmin();
+      
+      allow create: if isAdmin() && isValidId(emailId) && isValidAllowlistEntry(incoming());
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(emailId);
+    }
+    
+    match /admins/{uid} {
+      allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow write: if false; 
+    }
+  }
+}
