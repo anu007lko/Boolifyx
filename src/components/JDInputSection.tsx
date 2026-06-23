@@ -34,10 +34,13 @@ export default function JDInputSection({
 
   const handlePaste = async () => {
     try {
+      if (!navigator.clipboard || typeof navigator.clipboard.readText !== "function") {
+        throw new Error("Clipboard API read option not supported or blocked in this environment");
+      }
       const text = await navigator.clipboard.readText();
       if (text) setJdText(text);
     } catch (err) {
-      alert("Failed to read clipboard contents. Please paste with Ctrl+V (or Cmd+V) directly.");
+      alert("Failed to read clipboard automatically. Please paste using Ctrl+V (or Cmd+V) directly inside the text area.");
     }
   };
 

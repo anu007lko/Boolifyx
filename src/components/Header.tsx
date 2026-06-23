@@ -2,17 +2,16 @@ import { useState } from "react";
 import { Info, LogOut, Shield, Key } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import AdminPanelModal from "./AdminPanelModal";
-import ApiKeyModal from "./ApiKeyModal";
 
 interface HeaderProps {
   apiKey: string;
   onKeyChange: (key: string) => void;
+  onOpenKeyModal: () => void;
 }
 
-export default function Header({ apiKey, onKeyChange }: HeaderProps) {
+export default function Header({ apiKey, onKeyChange, onOpenKeyModal }: HeaderProps) {
   const { user, isAdmin, logOut } = useAuth();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
   return (
     <header className="border-b border-slate-200/80 bg-white sticky top-0 z-50 px-8 py-5 shadow-sm">
@@ -48,7 +47,7 @@ export default function Header({ apiKey, onKeyChange }: HeaderProps) {
             
             {/* Bring Your Own Key (BYOK) Status Badge / Controller */}
             <button
-              onClick={() => setShowApiKeyModal(true)}
+              onClick={onOpenKeyModal}
               className={`flex items-center gap-2 text-xs font-bold tracking-wide py-2 px-3 rounded-lg border transition-all cursor-pointer ${
                 apiKey
                   ? "bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100/80 hover:border-emerald-300"
@@ -102,14 +101,6 @@ export default function Header({ apiKey, onKeyChange }: HeaderProps) {
       
       {showAdminPanel && (
         <AdminPanelModal onClose={() => setShowAdminPanel(false)} />
-      )}
-
-      {showApiKeyModal && (
-        <ApiKeyModal
-          onClose={() => setShowApiKeyModal(false)}
-          currentKey={apiKey}
-          onKeySave={onKeyChange}
-        />
       )}
     </header>
   );

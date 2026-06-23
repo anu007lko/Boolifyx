@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { JDAnalysisResult } from "../types";
 import { Copy, Sparkles, Check, BrainCircuit, ShieldAlert, ListFilter, Tag, EyeOff, ClipboardList, Info, Database, FolderOpen } from "lucide-react";
+import { safeLocalStorage, safeCopyToClipboard } from "../lib/safeStorage";
 
 interface QueryViewerProps {
   result: JDAnalysisResult;
@@ -519,9 +520,13 @@ MANUFACTURER SOURCING PARAMETERS:
 ================================================`;
 
     try {
-      await navigator.clipboard.writeText(reportText);
-      setReportCopied(true);
-      setTimeout(() => setReportCopied(false), 2500);
+      const ok = await safeCopyToClipboard(reportText);
+      if (ok) {
+        setReportCopied(true);
+        setTimeout(() => setReportCopied(false), 2500);
+      } else {
+        throw new Error("Failed to copy");
+      }
     } catch (err) {
       alert("Sourcing report generation failed.");
     }
@@ -603,7 +608,7 @@ MANUFACTURER SOURCING PARAMETERS:
             let historyList = history;
             if (!historyList) {
               try {
-                const stored = localStorage.getItem("recruiter_boolean_history");
+                const stored = safeLocalStorage.getItem("recruiter_boolean_history");
                 if (stored) {
                   historyList = JSON.parse(stored);
                 }
@@ -778,9 +783,13 @@ MANUFACTURER SOURCING PARAMETERS:
                       <button
                         onClick={async () => {
                           try {
-                            await navigator.clipboard.writeText(preset.query);
-                            setCopiedId(preset.id);
-                            setTimeout(() => setCopiedId(""), 2000);
+                            const ok = await safeCopyToClipboard(preset.query);
+                            if (ok) {
+                              setCopiedId(preset.id);
+                              setTimeout(() => setCopiedId(""), 2000);
+                            } else {
+                              throw new Error("Failed to copy");
+                            }
                           } catch (err) {
                             alert("Failed to copy. Please select text manually.");
                           }
@@ -822,9 +831,13 @@ MANUFACTURER SOURCING PARAMETERS:
                     <button
                       onClick={async () => {
                         try {
-                          await navigator.clipboard.writeText(liveCompiledStrings[0].query);
-                          setCopiedId("live-comprehensive");
-                          setTimeout(() => setCopiedId(""), 2000);
+                          const ok = await safeCopyToClipboard(liveCompiledStrings[0].query);
+                          if (ok) {
+                            setCopiedId("live-comprehensive");
+                            setTimeout(() => setCopiedId(""), 2000);
+                          } else {
+                            throw new Error("Failed to copy");
+                          }
                         } catch (err) {
                           alert("Failed to copy.");
                         }

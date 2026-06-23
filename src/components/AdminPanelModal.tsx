@@ -3,6 +3,7 @@ import { X, UserPlus, Shield, Trash2, UserX, Activity, Flame, CheckCircle, Alert
 import { collection, doc, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from './AuthProvider';
+import { safeLocalStorage } from '../lib/safeStorage';
 
 interface AdminPanelModalProps {
   onClose: () => void;
@@ -66,7 +67,7 @@ export default function AdminPanelModal({ onClose }: AdminPanelModalProps) {
     setHealthLoading(true);
     setHealthError('');
     try {
-      const apiKeyVal = localStorage.getItem("user_gemini_api_key") || "";
+      const apiKeyVal = safeLocalStorage.getItem("user_gemini_api_key") || "";
       const headers: Record<string, string> = {};
       if (apiKeyVal) {
         headers["x-gemini-key"] = apiKeyVal;
@@ -92,7 +93,7 @@ export default function AdminPanelModal({ onClose }: AdminPanelModalProps) {
     setStressError('');
     setStressResults(null);
     try {
-      const apiKeyVal = localStorage.getItem("user_gemini_api_key") || "";
+      const apiKeyVal = safeLocalStorage.getItem("user_gemini_api_key") || "";
       const headers: Record<string, string> = {
         "Content-Type": "application/json"
       };

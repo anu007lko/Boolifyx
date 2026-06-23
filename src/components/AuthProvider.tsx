@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from '../firebase';
+import { safeSessionStorage } from '../lib/safeStorage';
 import { LogOut, ShieldAlert, Cpu } from 'lucide-react';
 
 interface AuthContextType {
@@ -39,8 +40,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Check local cache first to minimize Firestore reads
           const cacheKeyAllowed = `auth_allowed_${uid}`;
           const cacheKeyAdmin = `auth_admin_${uid}`;
-          const cachedAllowed = sessionStorage.getItem(cacheKeyAllowed);
-          const cachedAdmin = sessionStorage.getItem(cacheKeyAdmin);
+          const cachedAllowed = safeSessionStorage.getItem(cacheKeyAllowed);
+          const cachedAdmin = safeSessionStorage.getItem(cacheKeyAdmin);
 
           if (cachedAllowed !== null && cachedAdmin !== null) {
             setIsAllowed(cachedAllowed === 'true');
@@ -90,8 +91,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsAllowed(userIsAllowed);
 
           // Write back to sessionStorage to eliminate reads on page reload in the same tab
-          sessionStorage.setItem(cacheKeyAllowed, String(userIsAllowed));
-          sessionStorage.setItem(cacheKeyAdmin, String(userIsAdmin));
+          safeSessionStorage.setItem(cacheKeyAllowed, String(userIsAllowed));
+          safeSessionStorage.setItem(cacheKeyAdmin, String(userIsAdmin));
           
         } catch (error) {
           console.error("Error fetching access info:", error);
@@ -118,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logOut = async () => {
     try {
-      sessionStorage.clear();
+      safeSessionStorage.clear();
       await signOut(auth);
     } catch (error) {
       console.error("Sign out failed:", error);

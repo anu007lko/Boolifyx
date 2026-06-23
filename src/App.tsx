@@ -3,8 +3,10 @@ import Header from "./components/Header";
 import JDInputSection from "./components/JDInputSection";
 import SkillsIntelligence from "./components/SkillsIntelligence";
 import QueryViewer from "./components/QueryViewer";
+import ApiKeyModal from "./components/ApiKeyModal";
 import { JDAnalysisResult, SearchProfile, SkillItem } from "./types";
-import { Sparkles, ArrowRight, BrainCircuit, AlertCircle, FileText, Sliders } from "lucide-react";
+import { Sparkles, ArrowRight, BrainCircuit, AlertCircle, FileText, Sliders, Key, ExternalLink } from "lucide-react";
+import { safeLocalStorage } from "./lib/safeStorage";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,25 +32,19 @@ export default function App() {
 
   // Bring Your Own Key state and persistence managers
   const [apiKey, setApiKey] = useState<string>(() => {
-    try {
-      return localStorage.getItem("user_gemini_api_key") || "";
-    } catch {
-      return "";
-    }
+    return safeLocalStorage.getItem("user_gemini_api_key") || "";
   });
 
   const handleKeyChange = (newKey: string) => {
-    try {
-      if (newKey) {
-        localStorage.setItem("user_gemini_api_key", newKey);
-      } else {
-        localStorage.removeItem("user_gemini_api_key");
-      }
-    } catch (e) {
-      console.warn("Could not write API Key block:", e);
+    if (newKey) {
+      safeLocalStorage.setItem("user_gemini_api_key", newKey);
+    } else {
+      safeLocalStorage.removeItem("user_gemini_api_key");
     }
     setApiKey(newKey);
   };
+
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   
   // Rate limit cooldown state tracer
   const [cooldownRemaining, setCooldownRemaining] = useState<number | null>(null);
@@ -72,7 +68,7 @@ export default function App() {
   // Sync historical sourcing records on start
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("recruiter_boolean_history");
+      const stored = safeLocalStorage.getItem("recruiter_boolean_history");
       if (stored) {
         const parsed = JSON.parse(stored) as SearchProfile[];
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -100,7 +96,7 @@ export default function App() {
   const saveHistory = (newHistory: SearchProfile[]) => {
     setHistory(newHistory);
     try {
-      localStorage.setItem("recruiter_boolean_history", JSON.stringify(newHistory));
+      safeLocalStorage.setItem("recruiter_boolean_history", JSON.stringify(newHistory));
     } catch (e) {
       console.warn("Could not save history record profiles:", e);
     }
@@ -115,7 +111,7 @@ export default function App() {
     if (confirm("Are you sure you want to delete all saved sourcing projects?")) {
       setHistory([]);
       setCurrentProfileId("");
-      localStorage.removeItem("recruiter_boolean_history");
+      safeLocalStorage.removeItem("recruiter_boolean_history");
     }
   };
 
@@ -266,7 +262,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-900">
-      <Header apiKey={apiKey} onKeyChange={handleKeyChange} />
+      <Header apiKey={apiKey} onKeyChange={handleKeyChange} onOpenKeyModal={() => setShowApiKeyModal(true)} />
 
       {/* Main Container workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-8 grid grid-cols-12 gap-8">
@@ -320,7 +316,7 @@ export default function App() {
                   </div>
                 )}
               </div>
-              <p className="text-sm text-rose-700 leading-relaxed font-medium">
+              <p className="text-sm text-rose-700 leading-relaxed font-semibold">
                 {errorMsg}
               </p>
               {cooldownRemaining !== null ? (
@@ -328,8 +324,48 @@ export default function App() {
                   The in-memory cooldown prevents multiple fast-succession API invocations to protect rate limits. Submitting again is allowed once the countdown drops below zero.
                 </div>
               ) : (
-                <div className="text-xs text-slate-500 pt-1">
-                  The AI provider is currently experiencing issues. Please try again in a few moments.
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <div className="text-xs text-slate-500 leading-relaxed">
+                    Under the shared development free tier, Google enforces a request quota limit of <strong>5 RPM</strong> (requests per minute) per project. Since multiple recruiters share the developer key, this request limit was exceeded. 
+                    No problem! You can easily <strong>bypass this completely</strong> with your own private API Key:
+                  </div>
+                  
+                  {/* Quota/Rate Limit BYOK Resolution Guide */}
+                  <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+                    <h4 className="text-xs font-bold text-indigo-900 flex items-center gap-1.5 font-mono uppercase tracking-wider">
+                      <Key className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                      <span>Private Resolution Guide (BYOK):</span>
+                    </h4>
+                    
+                    <div className="space-y-2.5">
+                      <div className="text-xs text-slate-600 leading-relaxed">
+                        <span className="font-bold text-indigo-700">1. Generate Your Key (100% Free)</span>: Go to <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-850 font-bold underline inline-flex items-center gap-0.5" referrerPolicy="no-referrer">Google AI Studio <ExternalLink className="w-3 h-3 inline" /></a> and click <strong>"Get API key"</strong>. It takes 10 seconds of clicks.
+                      </div>
+                      <div className="text-xs text-slate-600 leading-relaxed">
+                        <span className="font-bold text-indigo-700">2. Save Key to Browser Cache</span>: Click the button below to paste/connect it. Your search actions will run instantly on your private dedicated quota!
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 flex flex-wrap gap-2.5">
+                      <button
+                        onClick={() => setShowApiKeyModal(true)}
+                        className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs px-4 py-2.5 rounded-lg shadow-sm transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
+                        type="button"
+                      >
+                        <Key className="w-3.5 h-3.5" />
+                        <span>Connect Your Free API Key</span>
+                      </button>
+                      <a
+                        href="https://aistudio.google.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white border border-slate-200 hover:bg-slate-100 hover:border-slate-300 active:scale-95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-lg transition-all duration-300 inline-flex items-center gap-1.5 shadow-xs"
+                      >
+                        <span>AI Studio console</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -467,6 +503,14 @@ export default function App() {
         <p className="font-mono uppercase tracking-widest text-[10px] font-bold text-slate-500">© 2026 Boolean Search Query Generator. Sourcing Intelligence Teammate.</p>
         <p className="mt-2 text-xs text-slate-400">Enterprise Grade. Designed for Global Technical Recruiters & Sourcing Specialists.</p>
       </footer>
+
+      {showApiKeyModal && (
+        <ApiKeyModal
+          onClose={() => setShowApiKeyModal(false)}
+          currentKey={apiKey}
+          onKeySave={handleKeyChange}
+        />
+      )}
     </div>
   );
 }
